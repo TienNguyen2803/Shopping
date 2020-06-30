@@ -52,7 +52,7 @@ class Contents extends Component {
       }
     );
   };
-
+// BÂY H HẾT VIẾT KIỂU V R
   DeleteProduct = (key) => {
     let _products = this.state.products;
     _products.forEach((products, index) => {
