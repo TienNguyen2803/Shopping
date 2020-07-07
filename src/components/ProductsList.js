@@ -1,23 +1,10 @@
 import React, { Component } from 'react';
 import {  Button, Table, Tag, Space} from "antd";
+import * as actions from './../actions/index'
+;import {connect}  from 'react-redux';
 class ProductsList extends Component {
-
-    constructor(props) {
-      super(props);
-      this.state = {
-        products : this.props.products
-      }
-    }
-     componentWillReceiveProps(nextProps){
-       if(nextProps && nextProps.products){
-          this.setState({
-            products : [...nextProps.products]
-          })
-       }
-     }
-
+  
     render() {
-        const {  deleteProduct,onEdit} = this.props;
         
         const columns = [
             {
@@ -51,8 +38,8 @@ class ProductsList extends Component {
               key: 'action',
               render: (text, record) => (
                 <Space size="middle">
-                  <Button type="primary" onClick={() => {deleteProduct(record.key)}}>Xóa</Button>
-                  <Button type="primary" onClick={() => {onEdit(record.key)}}>Sửa</Button>
+                  <Button type="primary" onClick={() => {this.props.onDelete(record.key)}}>Xóa</Button>
+                  <Button type="primary" onClick={() => {this.props.onEdit(record.key) ; this.props.onShowPopup()}}>Sửa</Button>
                 </Space>
               ),
             },
@@ -60,10 +47,28 @@ class ProductsList extends Component {
         
         return (
             <div>
-                 <Table columns={columns} dataSource={this.state.products} />
+                 <Table columns={columns} dataSource={this.props.products} />
             </div>
         );
     }
 }
 
-export default ProductsList;
+const mapStateToProp = (state) => {
+    return {
+      products : state.products
+    }
+}
+const mapDispatchToProp  = (dispatch, props) => {
+  return {
+    onEdit : (id) => {
+      dispatch(actions.editProduct(id))
+    },
+    onDelete : (id) => {
+      dispatch(actions.deleteProduct(id))
+    },
+    onShowPopup : () => {
+      dispatch(actions.isShowPopup())
+    }
+  }
+}
+export default connect(mapStateToProp,mapDispatchToProp)(ProductsList);

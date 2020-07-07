@@ -2,6 +2,9 @@ import React, { Component } from "react";
 import { Form, Modal, Input, Button, InputNumber, Select } from "antd";
 import { PlusCircleOutlined, DownOutlined } from "@ant-design/icons";
 import randomString from "random-string";
+import * as actions from './../actions/index'
+;import {connect} from 'react-redux';
+
 const { Option } = Select;
 
 class CreateProduct extends Component {
@@ -10,7 +13,6 @@ class CreateProduct extends Component {
     this.state = {
       key: randomString(),
       name: "",
-      visible : this.props.product? true : false,
       quantity: 0,
       resetModal:false,
       category: "Iphone",
@@ -19,29 +21,27 @@ class CreateProduct extends Component {
     };
   }
   handleOk = () => {
-    var _quantity = this.state.quantity;
-    
-    this.setState({
-        reset : true,
-        visible : false,
-        key : randomString(),
-        status : _quantity === 0 ? false :true
-    })
-    this.props.addProduct(this.state);
+    this.props.onShowPopup();
+    let product = {
+      key: this.props.productEditing.key?this.props.productEditing.key : randomString(),
+      name: this.state.name?this.state.name : this.props.productEditing.name ,
+      quantity: this.state.quantity,
+      category: this.state.category,
+      status: this.state.quantity === 0 ? false : true,
+    }
+    console.log(product)
+    this.props.AddProduct(product);
+    //this.props.addProduct(this.state);
     
   };
 
   handleCancel = () => {
     console.log("Clicked cancel button");
-    this.setState({
-      visible: false,
-    });
+    this.props.onShowPopup();
   };
   showModal = () => {
-    this.setState({
-      visible: true,
-      reset : false
-    });
+    this.props.onShowPopup();
+    this.props.onClearProductEditing();
   };
   onChangeQuantity = (e) => {
     this.setState({
@@ -59,8 +59,10 @@ class CreateProduct extends Component {
       })
   }
   render() {
-    const { visible, quantity ,category,reset, product} = this.state;
-    console.log(product)
+    const { quantity ,category, product} = this.state;
+    const {productEditing} = this.props;
+    const {visible,reset} = this.props.isShowPopup;
+    const titleName = this.props.productEditing.key? "Cập nhật sản phẩm" : "Thêm sản phẩm"
     return (
       <div>
         <Button
@@ -69,29 +71,28 @@ class CreateProduct extends Component {
           size="middle"
           onClick={this.showModal}
         >
-          Thêm sản phẩm
+         Thêm sản phẩm
         </Button>
         <Modal
           destroyOnClose={reset}
-          title="Title"
+          title= {titleName}
           visible={visible}
           onOk={this.handleOk}
           onCancel={this.handleCancel}
         >
           <Form.Item label="Tên sản phẩm">
-            <Input placeholder="Nhập tên sản phẩm"  onChange={this.onChangeName}     />
+            <Input placeholder="Nhập tên sản phẩm"  defaultValue={productEditing.name? productEditing.name : ""} onChange={this.onChangeName}     />
           </Form.Item>
           <Form.Item label="Số lượng">
             <InputNumber
-              defaultValue={0}
-             
+              defaultValue={productEditing.quantity? productEditing.quantity : 0}
               min={0}
               onChange={this.onChangeQuantity}
             />
           </Form.Item>
           <Form.Item label="Loại">
             <Select
-              defaultValue={category}
+              defaultValue={productEditing.category ? productEditing.category : category}
               style={{ width: 120 }}
               onChange={this.onChangeCategory}
             >
@@ -105,5 +106,24 @@ class CreateProduct extends Component {
     );
   }
 }
+const mapStateToProps = (state) => {
+  return {
+      isShowPopup : state.isShowPopup,
+      productEditing : state.productEditing
+  }
+}
+const mapDispatchToProps = (dispatch , props) => {
+  return {
+    AddProduct :  (product) => {
+       dispatch(actions.addProduct(product))
+    },
+    onShowPopup : () => {
+      dispatch(actions.isShowPopup())
+    },
+    onClearProductEditing : () => {
+      dispatch(actions.onClearProductEditing())
+    }
+  }
 
-export default CreateProduct;
+}
+export default connect(mapStateToProps,mapDispatchToProps)(CreateProduct);

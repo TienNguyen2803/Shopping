@@ -13,74 +13,15 @@ import {
 } from "antd";
 import Products from "./Products";
 import CreateProduct from "./CreateProduct";
-
+import {connect} from "react-redux";
+import * as actions from "./../actions/index";
 import ProductsList from "./ProductsList";
 import "./common.css";
 
 const { Search } = Input;
 
 class Contents extends Component {
-  constructor(props, context) {
-    super(props, context);
-    this.state = {
-      products: [],
-      IsActive: false,
-      EditProduct : null
-    };
-  }
-  ShowProduct = () => {
-    this.setState({
-      IsActive: !this.state.IsActive,
-    });
-  };
-  AddProducts = (data) => {
-    const object = {
-      key: data.key,
-      name: data.name,
-      quantity: data.quantity,
-      category: data.category,
-      status: true,
-    };
-
-    this.setState(
-      (prev) => ({
-        ...prev,
-        products: [...prev.products, object],
-      }),
-      () => {
-        localStorage.setItem("products", JSON.stringify(this.state.products));
-      }
-    );
-  };
-
-  DeleteProduct = (key) => {
-    let _products = this.state.products;
-    _products.forEach((products, index) => {
-      if (products.key === key) {
-        _products.splice(index, 1);
-        return;
-      }
-    });
-
-    this.setState({
-      products: _products,
-    });
-    localStorage.setItem("products", JSON.stringify(this.state.products));
-  };
-
-  onEdit = (key) => {
-    console.log(key)
-    let _products = this.state.products;
-    let product = _products.find(x => x.key === key) ;
-    this.setState({
-       EditProduct : product
-    })
-    console.log(this.state.EditProduct)
-    // this.setState({
-    //   products: _products,
-    // });
-    // localStorage.setItem("products", JSON.stringify(this.state.products));
-  };
+  
 
   onGenerateData = () => {
     const products = [
@@ -112,17 +53,10 @@ class Contents extends Component {
     });
     localStorage.setItem("products", JSON.stringify(products));
   };
-  componentWillMount() {
-    if (localStorage && localStorage.getItem("products")) {
-      var products = JSON.parse(localStorage.getItem("products"));
-      this.setState({
-        products: products,
-      });
-    }
-  }
+  
 
   render() {
-    const { products, IsActive } = this.state;
+    const {IsActive, products  } = this.props;
     const elements = products.map((pro, index) => {
       return (
         <Col span={8} key={index}>
@@ -142,9 +76,7 @@ class Contents extends Component {
           </Button>
         </Row>
         <Row className="mb-5">
-          <CreateProduct 
-                        addProduct={this.AddProducts}
-                        product = {this.state.EditProduct} />
+          <CreateProduct/>
         </Row>
         <Row>
           <Col span={12}>
@@ -157,14 +89,10 @@ class Contents extends Component {
           </Col>
         </Row>
         <Row span={24}>
-          <ProductsList
-            products={products}
-            deleteProduct={this.DeleteProduct}
-            onEdit = {this.onEdit}
-          />
+          <ProductsList/>
         </Row>
         <Row>
-          <Button type="primary" htmlType="submit" onClick={this.ShowProduct}>
+          <Button type="primary" htmlType="submit" onClick={() => this.props.isShowProducts()}>
             Show
           </Button>
         </Row>
@@ -175,5 +103,17 @@ class Contents extends Component {
     );
   }
 }
-
-export default Contents;
+const mapStateToProps = (state) => {
+  return {
+      IsActive : state.isShowForm,
+      products : state.products
+  }
+}
+const mapDispatchToProps = (dispatch, props) => {
+  return {
+    isShowProducts : () => {
+      dispatch(actions.isShowProducts())
+    }
+  }
+}
+export default connect(mapStateToProps,mapDispatchToProps)(Contents);
